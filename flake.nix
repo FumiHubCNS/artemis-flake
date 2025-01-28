@@ -61,8 +61,6 @@
               }"
             '';
 
-            setupHook = ./setup-hook.sh;
-
             meta = {
               homepage = "https://github.com/artemis-dev/artemis/tree/develop";
               mainProgram = "artemis";
