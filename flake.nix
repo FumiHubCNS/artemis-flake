@@ -13,11 +13,14 @@
           {
             name = "artemis";
             version = "develop";
-            src = pkgs.fetchFromGitHub {
-              owner = "artemis-dev";
-              repo = "artemis";
-              rev = "87ff6ff183fe1e5b48431d73e94d9041481f0f23";
-              hash = "sha256-mc4wXwZPjRXPGlnSEMmZnAnUAWpSBaHAvOhI4Pgvyss=";
+            src = pkgs.applyPatches {
+              src = pkgs.fetchFromGitHub {
+                owner = "artemis-dev";
+                repo = "artemis";
+                rev = "87ff6ff183fe1e5b48431d73e94d9041481f0f23";
+                hash = "sha256-mc4wXwZPjRXPGlnSEMmZnAnUAWpSBaHAvOhI4Pgvyss=";
+              };
+              patches = [ ./patch/thisartemis.sh.in.patch ];
             };
 
             nativeBuildInputs = with pkgs; [
@@ -32,6 +35,7 @@
               root
               zlib
             ];
+            packages = [ ];
 
             cmakeFlags = [
               # "-DCMAKE_SKIP_INSTALL_RPATH=ON"
@@ -47,12 +51,14 @@
               # but it also need to support Bash-less POSIX shell like dash,
               # as they are mentioned in `thisroot.sh`.
               # see: https://github.com/NixOS/nixpkgs/blob/852ff1d9e153d8875a83602e03fdef8a63f0ecf8/pkgs/by-name/ro/root/package.nix#L205C1-L207C46
+
               patchRcPathPosix "$out/bin/thisartemis.sh" "${
                 pkgs.lib.makeBinPath [
                   pkgs.coreutils # uname, dirname, printf
                   pkgs.gnused # sed
                 ]
               }"
+
               patchRcPathCsh "$out/bin/thisartemis.csh" "${
                 pkgs.lib.makeBinPath [
                   pkgs.coreutils # dirname
@@ -60,6 +66,8 @@
                 ]
               }"
             '';
+
+            setupHook = ./setup-hook.sh;
 
             meta = {
               homepage = "https://github.com/artemis-dev/artemis/tree/develop";

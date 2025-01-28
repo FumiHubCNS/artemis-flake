@@ -1,0 +1,58 @@
+From 1feb676a06d900437adbc889aa7107ea18c6a108 Mon Sep 17 00:00:00 2001
+From: psiana011 <psiana011.endo@gmail.com>
+Date: Wed, 29 Jan 2025 04:41:30 +0900
+Subject: [PATCH] patch
+
+---
+ sources/main/thisartemis.sh.in | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/sources/main/thisartemis.sh.in b/sources/main/thisartemis.sh.in
+index 97d4b52..adb182b 100644
+--- a/sources/main/thisartemis.sh.in
++++ b/sources/main/thisartemis.sh.in
+@@ -1,13 +1,13 @@
+-export LD_LIBRARY_PATH=@yaml_cpp_LIBDIR@:$LD_LIBRARY_PATH
++export LD_LIBRARY_PATH=@yaml_cpp_LIBDIR@:${LD_LIBRARY_PATH-}
+ export TARTSYS=@CMAKE_INSTALL_PREFIX@
+ export PATH=$TARTSYS/bin:$PATH
+-export LD_LIBRARY_PATH=$TARTSYS/lib:$LD_LIBRARY_PATH
++export LD_LIBRARY_PATH=$TARTSYS/lib:${LD_LIBRARY_PATH-}
+ 
+ if [ `uname -s` = "Darwin" ]; then
+     export DYLD_LIBRARY_PATH=$TARTSYS/lib:$DYLD_LIBRARY_PATH
+ fi    
+ if [ "@BUILD_GET@" = "ON" ]; then 
+-    export LD_LIBRARY_PATH=@GET_LIB_DIR@:$LD_LIBRARY_PATH
++    export LD_LIBRARY_PATH=@GET_LIB_DIR@:${LD_LIBRARY_PATH-}
+     if [ `uname -s` = "Darwin" ]; then
+         export DYLD_LIBRARY_PATH=@GET_LIB_DIR@:$DYLD_LIBRARY_PATH
+     fi    
+@@ -20,7 +20,7 @@ if [ "@ZeroMQ_FOUND@" = "1" ]; then
+         dirs+=(`dirname $S`)
+     done
+     libpaths=`printf '%s\n' "${dirs[@]}" | sort -u | paste -s -d ':' -`
+-    export LD_LIBRARY_PATH=$libpaths:$LD_LIBRARY_PATH
++    export LD_LIBRARY_PATH=$libpaths:${LD_LIBRARY_PATH-}
+ fi
+ 
+ if [ "@REDIS_FOUND@" = "1" ]; then
+@@ -31,7 +31,7 @@ if [ "@REDIS_FOUND@" = "1" ]; then
+         dirs+=$S
+     done
+     libpaths=`printf '%s\n' "${dirs[@]}" | sort -u | paste -s -d ':' -`
+-    export LD_LIBRARY_PATH=$libpaths:$LD_LIBRARY_PATH
++    export LD_LIBRARY_PATH=$libpaths:${LD_LIBRARY_PATH-}
+ fi
+ 
+ 
+@@ -44,5 +44,5 @@ if [ "@MPI_CXX_FOUND@" = "TRUE" ]; then
+         dirs+=(`dirname $S`)
+     done
+     libpaths=`printf '%s\n' "${dirs[@]}" | sort -u | paste -s -d ':' -`
+-    export LD_LIBRARY_PATH=$libpaths:$LD_LIBRARY_PATH
++    export LD_LIBRARY_PATH=$libpaths:${LD_LIBRARY_PATH-}
+ fi
+-- 
+2.47.1
+
