@@ -1,1 +1,5 @@
-source @out@/bin/thisartemis.sh
+thisartemis() {
+  source @out@/bin/thisartemis.sh
+}
+
+postHooks+=(thisartemis)
