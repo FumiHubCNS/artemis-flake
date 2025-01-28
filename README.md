@@ -14,10 +14,7 @@ nix shell github:espeon011/artemis-flake
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    flake-utils.url = "github:numtide/flake-utils";
     artemis-flake = {
       url = "github:espeon011/artemis-flake";
       inputs.nixpkgs.follows = "nixpkgs";
