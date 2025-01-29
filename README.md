@@ -1,12 +1,6 @@
 # Nix flake package for artemis
 
-## Quick Use
-
-```shell
-nix shell github:espeon011/artemis-flake
-```
-
-## Using from flake.nix
+## Usage
 
 ```nix
 {
@@ -36,4 +30,10 @@ nix shell github:espeon011/artemis-flake
       }
     );
 }
+```
+
+in your `flake.nix`, then run
+
+```shell
+nix develop
 ```
