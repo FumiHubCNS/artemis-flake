@@ -34,6 +34,7 @@
               yaml-cpp
               root
               zlib
+              zlib.dev
             ];
             packages = [ ];
 
@@ -58,6 +59,8 @@
                   pkgs.gnused # sed
                 ]
               }"
+              echo 'export CPATH=${pkgs.zlib.dev}/include:''${CPATH-}' >> "$out/bin/thisartemis.sh"
+              echo 'export LD_LIBRARY_PATH=${pkgs.zlib}/lib:''${LD_LIBRARY_PATH-}' >> "$out/bin/thisartemis.sh"
 
               patchRcPathCsh "$out/bin/thisartemis.csh" "${
                 pkgs.lib.makeBinPath [
@@ -65,6 +68,8 @@
                   pkgs.gnused # sed
                 ]
               }"
+              echo 'setenv CPATH ${pkgs.zlib.dev}/include:$CPATH' >> "$out/bin/thisartemis.csh"
+              echo 'setenv LD_LIBRARY_PATH ${pkgs.zlib}/lib:$LD_LIBRARY_PATH' >> "$out/bin/thisartemis.csh"
             '';
 
             setupHook = ./setup-hook.sh;
