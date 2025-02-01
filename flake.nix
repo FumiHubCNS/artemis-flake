@@ -4,12 +4,17 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+  }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
+        pkgs = import nixpkgs {inherit system;};
 
-        artemis = pkgs.stdenv.mkDerivation
+        artemis =
+          pkgs.stdenv.mkDerivation
           {
             name = "artemis";
             version = "develop";
@@ -20,7 +25,7 @@
                 rev = "87ff6ff183fe1e5b48431d73e94d9041481f0f23";
                 hash = "sha256-mc4wXwZPjRXPGlnSEMmZnAnUAWpSBaHAvOhI4Pgvyss=";
               };
-              patches = [ ./patch/thisartemis.sh.in.patch ];
+              patches = [./patch/thisartemis.sh.in.patch];
             };
 
             nativeBuildInputs = with pkgs; [
@@ -36,7 +41,7 @@
               zlib
               zlib.dev
             ];
-            packages = [ ];
+            packages = [];
 
             cmakeFlags = [
               # "-DCMAKE_SKIP_INSTALL_RPATH=ON"
@@ -81,9 +86,7 @@
               # license = pkgs.lib.licenses.unlicense;
             };
           };
-
-      in
-      {
+      in {
         packages = {
           inherit artemis;
           default = artemis;
@@ -91,8 +94,3 @@
       }
     );
 }
-
-
-
-
-
