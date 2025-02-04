@@ -22,8 +22,8 @@
               src = pkgs.fetchFromGitHub {
                 owner = "artemis-dev";
                 repo = "artemis";
-                rev = "87ff6ff183fe1e5b48431d73e94d9041481f0f23";
-                hash = "sha256-mc4wXwZPjRXPGlnSEMmZnAnUAWpSBaHAvOhI4Pgvyss=";
+                rev = "7b4e925c6c4a6804688f08432fe31e18b590a890";
+                hash = "sha256-iHGGhALwUXyOfR6L9siACLbbmHA1oQpmEuLKLRx37KQ=";
               };
               patches = [./patch/thisartemis.sh.in.patch];
             };
@@ -80,7 +80,7 @@
             setupHook = ./setup-hook.sh;
 
             meta = {
-              homepage = "https://github.com/artemis-dev/artemis/tree/develop";
+              homepage = "https://artemis-dev.github.io";
               mainProgram = "artemis";
               platforms = pkgs.lib.platforms.unix;
               # license = pkgs.lib.licenses.unlicense;
