@@ -1,5 +1,7 @@
 # Nix flake package for artemis
 
+This is a flake for the [artemis](https://github.com/artemis-dev/artemis/tree/develop).
+
 ## Usage
 
 ```nix
