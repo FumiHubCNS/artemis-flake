@@ -22,8 +22,8 @@
               src = pkgs.fetchFromGitHub {
                 owner = "artemis-dev";
                 repo = "artemis";
-                rev = "7b4e925c6c4a6804688f08432fe31e18b590a890";
-                hash = "sha256-iHGGhALwUXyOfR6L9siACLbbmHA1oQpmEuLKLRx37KQ=";
+                rev = "966a83f93869254a17263b1db64186d55b15f048";
+                hash = "sha256-mAeaCTnu68c1CewroUwo8Q9WxVlKQsvmtMCHhXwL9r8=";
               };
               patches = [./patch/thisartemis.sh.in.patch];
             };
