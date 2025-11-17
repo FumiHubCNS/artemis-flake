@@ -4,13 +4,6 @@ This is a flake for the [artemis](https://github.com/artemis-dev/artemis/tree/de
 
 ## Usage
 
-```shell
-nix run github:espeon011/artemis-flake#artemis
-```
-
-for directly run.
-Or
-
 ```nix
 {
   description = "artemis execution environment";
