@@ -2,16 +2,19 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    root-pin.url = "github:NixOS/nixpkgs/f3fd821e8dab2b31bdafd91a1997cdeee2eae790";
   };
 
   outputs = {
     self,
     nixpkgs,
     flake-utils,
+    root-pin,
   }:
     flake-utils.lib.eachDefaultSystem (
       system: let
         pkgs = import nixpkgs {inherit system;};
+        pkgs-root = import root-pin {inherit system;};
 
         artemis =
           pkgs.stdenv.mkDerivation
@@ -22,8 +25,8 @@
               src = pkgs.fetchFromGitHub {
                 owner = "artemis-dev";
                 repo = "artemis";
-                rev = "966a83f93869254a17263b1db64186d55b15f048";
-                hash = "sha256-mAeaCTnu68c1CewroUwo8Q9WxVlKQsvmtMCHhXwL9r8=";
+                rev = "9f713420dcfaf75548a6bf94b60dc28d583ba952";
+                hash = "sha256-TbDYtH0aMcJauIsQ2Y08z63QoYJ7XBFQxLUFT3rAbr0=";
               };
               patches = [./patch/thisartemis.sh.in.patch];
             };
@@ -35,11 +38,11 @@
               patchRcPathFish
               patchRcPathPosix
             ];
-            buildInputs = with pkgs; [
-              yaml-cpp
-              root
-              zlib
-              zlib.dev
+            buildInputs = [
+              pkgs.yaml-cpp
+              pkgs-root.root
+              pkgs.zlib
+              pkgs.zlib.dev
             ];
             packages = [];
 
