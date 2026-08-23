@@ -15,36 +15,48 @@
       system: let
         pkgs = import nixpkgs {inherit system;};
         pkgs-root = import root-pin {inherit system;};
+        root = pkgs-root.root;
 
         artemis =
           pkgs.stdenv.mkDerivation
           {
-            name = "artemis";
-            version = "develop";
+            pname = "artemis";
+            version = "2026-08-01";
             src = pkgs.applyPatches {
               src = pkgs.fetchFromGitHub {
                 owner = "artemis-dev";
                 repo = "artemis";
-                rev = "9f713420dcfaf75548a6bf94b60dc28d583ba952";
-                hash = "sha256-TbDYtH0aMcJauIsQ2Y08z63QoYJ7XBFQxLUFT3rAbr0=";
+                rev = "9fb27c3e67634636ec8c2c40d378e3e2a7e5388e";
+                hash = "sha256-81wXoImosafxikT2jllAJouUJOtIkKwno6q1vHzAbUw=";
               };
-              patches = [./patch/thisartemis.sh.in.patch];
+              patches = [
+                ./patch/artemis-config.cmake.in.patch
+                ./patch/cmake-linker-flags.patch
+                ./patch/thisartemis.sh.in.patch
+              ];
             };
 
-            nativeBuildInputs = with pkgs; [
-              cmake
-              pkg-config
-              patchRcPathCsh
-              patchRcPathFish
-              patchRcPathPosix
+            nativeBuildInputs = [
+              pkgs.cmake
+              pkgs.pkg-config
+              pkgs.gnused
+              pkgs.patchRcPathCsh
+              pkgs.patchRcPathPosix
             ];
             buildInputs = [
               pkgs.yaml-cpp
-              pkgs-root.root
               pkgs.zlib
-              pkgs.zlib.dev
+              root
             ];
-            packages = [];
+
+            # Artemis exposes CMake targets that link to both ROOT and yaml-cpp.
+            # They must be present in projects that consume it.
+            propagatedBuildInputs = [
+              pkgs.yaml-cpp
+              root
+            ];
+
+            strictDeps = true;
 
             cmakeFlags = [
               # "-DCMAKE_SKIP_INSTALL_RPATH=ON"
@@ -55,29 +67,23 @@
               "-DCMAKE_INSTALL_LIBDIR=lib"
             ];
 
-            postInstall = ''
-              # The main target of `thisroot.sh` is "bash-like shells",
-              # but it also need to support Bash-less POSIX shell like dash,
-              # as they are mentioned in `thisroot.sh`.
-              # see: https://github.com/NixOS/nixpkgs/blob/852ff1d9e153d8875a83602e03fdef8a63f0ecf8/pkgs/by-name/ro/root/package.nix#L205C1-L207C46
+            env.CPATH = "${pkgs.zlib.dev}/include";
 
+            postInstall = ''
               patchRcPathPosix "$out/bin/thisartemis.sh" "${
                 pkgs.lib.makeBinPath [
-                  pkgs.coreutils # uname, dirname, printf
-                  pkgs.gnused # sed
+                  pkgs.coreutils # uname, dirname
                 ]
               }"
-              echo 'export CPATH=${pkgs.zlib.dev}/include:''${CPATH-}' >> "$out/bin/thisartemis.sh"
-              echo 'export LD_LIBRARY_PATH=${pkgs.zlib}/lib:''${LD_LIBRARY_PATH-}' >> "$out/bin/thisartemis.sh"
+              # Support `source thisartemis.sh` outside `nix develop` too.
+              sed -i '1i. ${root}/bin/thisroot.sh' "$out/bin/thisartemis.sh"
 
               patchRcPathCsh "$out/bin/thisartemis.csh" "${
                 pkgs.lib.makeBinPath [
-                  pkgs.coreutils # dirname
-                  pkgs.gnused # sed
+                  pkgs.coreutils
                 ]
               }"
-              echo 'setenv CPATH ${pkgs.zlib.dev}/include:$CPATH' >> "$out/bin/thisartemis.csh"
-              echo 'setenv LD_LIBRARY_PATH ${pkgs.zlib}/lib:$LD_LIBRARY_PATH' >> "$out/bin/thisartemis.csh"
+              sed -i '1csource ${root}/bin/thisroot.csh' "$out/bin/thisartemis.csh"
             '';
 
             setupHook = ./setup-hook.sh;
