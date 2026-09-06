@@ -49,10 +49,11 @@
               root
             ];
 
-            # Artemis exposes CMake targets that link to both ROOT and yaml-cpp.
+            # Artemis exposes CMake targets that link to both ROOT, yaml-cpp and zlib.
             # They must be present in projects that consume it.
             propagatedBuildInputs = [
               pkgs.yaml-cpp
+              pkgs.zlib
               root
             ];
 
