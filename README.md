@@ -9,7 +9,7 @@ This is a flake for the [artemis](https://github.com/artemis-dev/artemis/tree/de
   description = "artemis execution environment";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     artemis-flake = {
       url = "github:FumiHubCNS/artemis-flake";
