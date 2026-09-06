@@ -12,7 +12,7 @@ This is a flake for the [artemis](https://github.com/artemis-dev/artemis/tree/de
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     artemis-flake = {
-      url = "github:espeon011/artemis-flake";
+      url = "github:FumiHubCNS/artemis-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
