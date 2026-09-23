@@ -3,16 +3,16 @@
     "artemisSrc": {
       "flake": false,
       "locked": {
-        "lastModified": 1789448793,
-        "narHash": "sha256-v658kPigoXrKCg3PlOzGAm2PY7blFBn3qH4Qeu2Rgw8=",
+        "lastModified": 1789694474,
+        "narHash": "sha256-u6bBp8RTrheWH5cKEYXg+Va4FPKI7H/4mw7oCG9ITGY=",
         "owner": "artemis-dev",
         "repo": "artemis",
-        "rev": "ce0fe8caa5b39e5298a9a9d2aa3e2b98167cae1c",
+        "rev": "c74e24adf90a83227fa3e5c38dc255ddc4aeb785",
         "type": "github"
       },
       "original": {
         "owner": "artemis-dev",
-        "ref": "develop",
+        "ref": "master",
         "repo": "artemis",
         "type": "github"
       }

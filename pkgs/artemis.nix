@@ -18,7 +18,7 @@
 
 stdenv.mkDerivation {
   pname = "artemis";
-  version = "develop";
+  version = "main";
 
   inherit src;
 

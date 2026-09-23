@@ -7,7 +7,7 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     artemisSrc = {
-      url = "github:artemis-dev/artemis/develop";
+      url = "github:artemis-dev/artemis/master";
       flake = false;
     };
 
