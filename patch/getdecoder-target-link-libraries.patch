@@ -1,0 +1,12 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -80,7 +80,7 @@
+ add_library(GETDecoder SHARED ${GET_SRCS})
+
+ target_include_directories(GETDecoder PRIVATE ${yaml_cpp_INCLUDEDIR} include)
+-target_link_libraries(GETDecoder ${YAML_CPP_LIBRARIES})
++target_link_libraries(GETDecoder PRIVATE ${YAML_CPP_LIBRARIES})
+
+ ROOT_GENERATE_DICTIONARY(arget
+   ${GET_HEADERS}

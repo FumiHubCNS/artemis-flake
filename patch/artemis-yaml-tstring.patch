@@ -1,0 +1,11 @@
+--- a/sources/loop/TProcessor.cc
++++ b/sources/loop/TProcessor.cc
+@@ -329,7 +329,7 @@
+ 	    const TString &comment =
+ 	       TString::Format("[%s] %s",
+ 			       prm->Type().Data(), prm->GetTitle().Data());
+-	    out << YAML::Key << prm->GetName();
++	    out << YAML::Key << prm->GetName().Data();
+ //	    if (prm->IsStringVector()) {
+ //	       out << YAML::Comment(comment.Data())
+ //		   << YAML::Value

@@ -1,0 +1,11 @@
+--- a/sources/loop/get/TGetEventStore.cc
++++ b/sources/loop/get/TGetEventStore.cc
+@@ -116,7 +116,7 @@
+       TString filelist = gSystem->GetFromPipe(Form("ls -tr %s*",(*it).Data()));
+       TObjArray *files = (filelist.Tokenize("\n"));
+       if (!files) {
+-         Error("Init",Form("No such files %s",(*it).Data()));
++         Error("Init", "%s", Form("No such files %s", (*it).Data()));
+          SetStateError("Init");
+          return;
+       } 

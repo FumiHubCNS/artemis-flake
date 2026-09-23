@@ -1,105 +1,178 @@
 {
+  description = "Full ARTEMIS environment for NixOS";
+
   inputs = {
-    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
     flake-utils.url = "github:numtide/flake-utils";
-    root-pin.url = "github:NixOS/nixpkgs/f3fd821e8dab2b31bdafd91a1997cdeee2eae790";
+
+    artemisSrc = {
+      url = "github:artemis-dev/artemis/develop";
+      flake = false;
+    };
+
+    getdecoderSrc = {
+      url = "github:oedo-sharaq/GETDecoder";
+      flake = false;
+    };
+
+    nestdaq = {
+      url = "github:FumiHubCNS/nestdaq-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    userImpl = {
+      url = "github:FumiHubCNS/nestdaq-user-impl-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
     self,
     nixpkgs,
     flake-utils,
-    root-pin,
+    artemisSrc,
+    getdecoderSrc,
+    nestdaq,
+    userImpl,
+    ...
   }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = import nixpkgs {inherit system;};
-        pkgs-root = import root-pin {inherit system;};
-        root = pkgs-root.root;
+      system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+        };
+
+        # --------------------------------------------------
+        # Dependencies
+        # --------------------------------------------------
+
+        # Do not override ROOT.
+        # Keep the nixpkgs derivation so the binary cache can be reused.
+        root = pkgs.root;
+
+        yaml-cpp = pkgs.yaml-cpp;
+        openmpi = pkgs.openmpi;
+
+        zeromq = pkgs.zeromq;
+        hiredis = pkgs.hiredis;
+        redis-plus-plus = pkgs.redis-plus-plus;
+
+        # --------------------------------------------------
+        # GETDecoder
+        # --------------------------------------------------
+
+        getdecoder =
+          pkgs.callPackage ./pkgs/getdecoder.nix {
+            src = getdecoderSrc;
+            inherit root;
+          };
+
+        # --------------------------------------------------
+        # ARTEMIS
+        # --------------------------------------------------
 
         artemis =
-          pkgs.stdenv.mkDerivation
-          {
-            pname = "artemis";
-            version = "2026-08-01";
-            src = pkgs.applyPatches {
-              src = pkgs.fetchFromGitHub {
-                owner = "artemis-dev";
-                repo = "artemis";
-                rev = "9fb27c3e67634636ec8c2c40d378e3e2a7e5388e";
-                hash = "sha256-81wXoImosafxikT2jllAJouUJOtIkKwno6q1vHzAbUw=";
-              };
-              patches = [
-                ./patch/artemis-config.cmake.in.patch
-                ./patch/cmake-linker-flags.patch
-                ./patch/thisartemis.sh.in.patch
-              ];
-            };
+          pkgs.callPackage ./pkgs/artemis.nix {
+            src = artemisSrc;
 
-            nativeBuildInputs = [
-              pkgs.cmake
-              pkgs.pkg-config
-              pkgs.gnused
-              pkgs.patchRcPathCsh
-              pkgs.patchRcPathPosix
-            ];
-            buildInputs = [
-              pkgs.yaml-cpp
-              pkgs.zlib
+            inherit
               root
-            ];
-
-            # Artemis exposes CMake targets that link to both ROOT, yaml-cpp and zlib.
-            # They must be present in projects that consume it.
-            propagatedBuildInputs = [
-              pkgs.yaml-cpp
-              pkgs.zlib
-              root
-            ];
-
-            strictDeps = true;
-
-            cmakeFlags = [
-              # "-DCMAKE_SKIP_INSTALL_RPATH=ON"
-              "-DCMAKE_SKIP_BUILD_RPATH=ON"
-
-              "-DCMAKE_INSTALL_BINDIR=bin"
-              "-DCMAKE_INSTALL_INCLUDEDIR=include"
-              "-DCMAKE_INSTALL_LIBDIR=lib"
-            ];
-
-            env.CPATH = "${pkgs.zlib.dev}/include";
-
-            postInstall = ''
-              patchRcPathPosix "$out/bin/thisartemis.sh" "${
-                pkgs.lib.makeBinPath [
-                  pkgs.coreutils # uname, dirname
-                ]
-              }"
-              # Support `source thisartemis.sh` outside `nix develop` too.
-              sed -i '1i. ${root}/bin/thisroot.sh' "$out/bin/thisartemis.sh"
-
-              patchRcPathCsh "$out/bin/thisartemis.csh" "${
-                pkgs.lib.makeBinPath [
-                  pkgs.coreutils
-                ]
-              }"
-              sed -i '1csource ${root}/bin/thisroot.csh' "$out/bin/thisartemis.csh"
-            '';
-
-            setupHook = ./setup-hook.sh;
-
-            meta = {
-              homepage = "https://artemis-dev.github.io";
-              mainProgram = "artemis";
-              platforms = pkgs.lib.platforms.unix;
-              # license = pkgs.lib.licenses.unlicense;
-            };
+              yaml-cpp
+              openmpi
+              zeromq
+              hiredis
+              redis-plus-plus
+              getdecoder
+              ;
           };
-      in {
+
+      in
+      {
         packages = {
-          inherit artemis;
+          inherit
+            artemis
+            getdecoder
+            ;
+
           default = artemis;
+        };
+
+        devShells.default = pkgs.mkShell {
+          name = "artemis-full-env";
+
+          # Do not use inputsFrom here.
+          # It can pull build-time setup hooks from ARTEMIS dependencies.
+          # inputsFrom = [ artemis ];
+
+          packages = [
+            artemis
+            getdecoder
+
+            # Do not add root directly here.
+            # ROOT is already used to build ARTEMIS/GETDecoder, and adding it
+            # directly to mkShell makes its setup-hook run automatically.
+            # root
+
+            yaml-cpp
+            openmpi
+            zeromq
+            hiredis
+            redis-plus-plus
+
+            pkgs.cmake
+            pkgs.pkg-config
+            pkgs.git
+          ];
+
+          shellHook = ''
+            # ROOT itself is not added as a direct mkShell package, so its
+            # nix-support/setup-hook is not intentionally activated here.
+            #
+            # thisroot.sh can still be sourced explicitly when testing ARTEMIS.
+            source ${root}/bin/thisroot.sh
+            source ${artemis}/bin/thisartemis.sh
+
+	    # GETDecoder for ROOT/cling
+	    export ROOT_INCLUDE_PATH="${getdecoder}:${getdecoder}/include''${ROOT_INCLUDE_PATH:+:$ROOT_INCLUDE_PATH}"
+	    export LD_LIBRARY_PATH="${getdecoder}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+            echo
+            echo "======================================"
+            echo " ARTEMIS full development environment "
+            echo "======================================"
+
+            echo
+            echo "ARTEMIS:"
+            echo "  ${artemis}"
+
+            echo
+            echo "GETDecoder:"
+            echo "  ${getdecoder}"
+
+            echo
+            echo "ROOT:"
+            root-config --version || true
+
+            echo
+            echo "MPI:"
+            mpirun --version | head -n 1 || true
+
+            echo
+            echo "ZeroMQ:"
+            pkg-config --modversion libzmq || true
+
+            echo
+            echo "hiredis:"
+            pkg-config --modversion hiredis || true
+
+            echo
+            echo "yaml-cpp:"
+            pkg-config --modversion yaml-cpp || true
+
+            echo
+          '';
         };
       }
     );

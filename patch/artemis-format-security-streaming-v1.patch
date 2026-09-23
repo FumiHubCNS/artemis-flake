@@ -1,0 +1,6 @@
+diff --git a/sources/loop/streaming-v1/TStreamingEventStoreV1.cc b/sources/loop/streaming-v1/TStreamingEventStoreV1.cc
+--- a/sources/loop/streaming-v1/TStreamingEventStoreV1.cc
++++ b/sources/loop/streaming-v1/TStreamingEventStoreV1.cc
+@@ -630,1 +630,1 @@
+-      Warning("GetZmqUri",err.what());
++      Warning("GetZmqUri","%s",err.what());
