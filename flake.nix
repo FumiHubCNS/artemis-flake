@@ -88,8 +88,73 @@
               ;
           };
 
+        # --------------------------------------------------
+        # Shared runtime environment
+        #
+        # This is used by:
+        #   - artemis-flake devShell
+        #   - external workdir flakes
+        # --------------------------------------------------
+
+        runtimePackages = [
+          artemis
+          getdecoder
+
+          yaml-cpp
+          openmpi
+          zeromq
+          hiredis
+          redis-plus-plus
+
+          pkgs.cmake
+          pkgs.pkg-config
+          pkgs.git
+        ];
+
+        runtimeShellHook = ''
+          # ------------------------------------------------
+          # ROOT / ARTEMIS
+          # ------------------------------------------------
+
+          source ${root}/bin/thisroot.sh
+          source ${artemis}/bin/thisartemis.sh
+
+          # ------------------------------------------------
+          # GETDecoder for ROOT/cling
+          #
+          # Some ROOT dictionaries contain paths such as:
+          #
+          #   GETHeaderBase.hh
+          #   include/GETTopologyFrame.hh
+          #
+          # Therefore both the package root and include/
+          # directory are added.
+          # ------------------------------------------------
+
+          export ROOT_INCLUDE_PATH="${getdecoder}:${getdecoder}/include''${ROOT_INCLUDE_PATH:+:$ROOT_INCLUDE_PATH}"
+
+          # ------------------------------------------------
+          # Runtime shared libraries
+          #
+          # ARTEMIS:
+          #   libartshare.so
+          #   libCAT.so
+          #   libcatcore.so
+          #   ...
+          #
+          # GETDecoder:
+          #   libGETDecoder.so
+          # ------------------------------------------------
+
+          export LD_LIBRARY_PATH="${artemis}/lib:${getdecoder}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        '';
+
       in
       {
+        # --------------------------------------------------
+        # Packages
+        # --------------------------------------------------
+
         packages = {
           inherit
             artemis
@@ -99,44 +164,44 @@
           default = artemis;
         };
 
+        # --------------------------------------------------
+        # Reusable runtime environment
+        #
+        # External flakes can access:
+        #
+        #   artemis-flake.lib.${system}.runtimePackages
+        #   artemis-flake.lib.${system}.runtimeShellHook
+        # --------------------------------------------------
+
+        lib = {
+          inherit
+            runtimePackages
+            runtimeShellHook
+            ;
+        };
+
+        # --------------------------------------------------
+        # Development shell
+        # --------------------------------------------------
+
         devShells.default = pkgs.mkShell {
           name = "artemis-full-env";
 
-          # Do not use inputsFrom here.
-          # It can pull build-time setup hooks from ARTEMIS dependencies.
-          # inputsFrom = [ artemis ];
+          # Do not use:
+          #
+          #   inputsFrom = [ artemis ];
+          #
+          # ARTEMIS depends on ROOT, and ROOT's setup-hook can
+          # execute thisroot automatically during mkShell
+          # construction.
+          #
+          # Instead, dependencies are explicitly listed here
+          # and thisroot.sh is sourced manually below.
 
-          packages = [
-            artemis
-            getdecoder
-
-            # Do not add root directly here.
-            # ROOT is already used to build ARTEMIS/GETDecoder, and adding it
-            # directly to mkShell makes its setup-hook run automatically.
-            # root
-
-            yaml-cpp
-            openmpi
-            zeromq
-            hiredis
-            redis-plus-plus
-
-            pkgs.cmake
-            pkgs.pkg-config
-            pkgs.git
-          ];
+          packages = runtimePackages;
 
           shellHook = ''
-            # ROOT itself is not added as a direct mkShell package, so its
-            # nix-support/setup-hook is not intentionally activated here.
-            #
-            # thisroot.sh can still be sourced explicitly when testing ARTEMIS.
-            source ${root}/bin/thisroot.sh
-            source ${artemis}/bin/thisartemis.sh
-
-	    # GETDecoder for ROOT/cling
-	    export ROOT_INCLUDE_PATH="${getdecoder}:${getdecoder}/include''${ROOT_INCLUDE_PATH:+:$ROOT_INCLUDE_PATH}"
-	    export LD_LIBRARY_PATH="${getdecoder}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+            ${runtimeShellHook}
 
             echo
             echo "======================================"
@@ -166,6 +231,10 @@
             echo
             echo "hiredis:"
             pkg-config --modversion hiredis || true
+
+            echo
+            echo "redis-plus-plus:"
+            pkg-config --modversion redis++ 2>/dev/null || true
 
             echo
             echo "yaml-cpp:"
